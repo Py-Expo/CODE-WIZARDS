@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Data</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://www.wallpapertip.com/wmimgs/5-57322_doctor-who-wallpaper-doctor-hd-wallpaper-download.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            transition: background-color 1s ease;
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: white; /* Text color changed to white for better visibility */
+        }
+
+        /* Container styles */
+        #container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8); /* Adding opacity to make text readable */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+
+        /* Chat container styles */
+        #chat-container {
+            padding: 20px;
+            border: 1px solid #ccc;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        /* Chat message styles */
+        .chat-message {
+            margin-bottom: 10px;
+            overflow-wrap: break-word;
+        }
+
+        .question {
+            float: left;
+            background-color: #F08080;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            clear: both;
+            margin-right: 50%;
+        }
+
+        .answer {
+            float: right;
+            background-color: #90EE90;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            clear: both;
+            margin-left: 50%;
+        }
+
+        .underline {
+            text-decoration: underline;
+        }
+
+        /* Button styles */
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Typing animation */
+        .typing-animation {
+            overflow: hidden; /* Hide overflowing text */
+            white-space: nowrap; /* Prevent line breaks */
+            width: 0; /* Initially set width to 0 */
+            animation: typing 5s steps(50, end); /* Animation duration and steps */
+            animation-fill-mode: forwards; /* Maintain final state after animation */
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <h1>Medical Data</h1>
+    <div id="chat-container">
+        <div class="chat-message question" id="question">Diagnosis:</div>
+    </div>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+</div>
+
+<script>
+    const chatContainer = document.getElementById('chat-container');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const questionDiv = document.getElementById('question');
+    let recognition = null;
+    let questions = ['Diagnosis:', 'Treatment:', 'Medication:'];
+    let currentQuestionIndex = 0;
+    let previousWord = '';
+
+    function startRecognition() {
+        recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = function(event) {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    interimTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            if (interimTranscript.trim() !== '') {
+                const answerDiv = document.createElement('div');
+                answerDiv.classList.add('chat-message', 'answer');
+
+                // Add typing effect
+                const typingSpan = document.createElement('span');
+                typingSpan.classList.add('typing-animation');
+                typingSpan.textContent = interimTranscript.trim().replace(/full\s*stop/g, '.').replace('fullstop', '.');
+                answerDiv.appendChild(typingSpan);
+
+                chatContainer.appendChild(answerDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        };
+
+        recognition.onstart = function() {
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+        };
+
+        recognition.onend = function() {
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            if (recognition) {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('chat-message', 'question');
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) {
+                    questionDiv.textContent = questions[currentQuestionIndex];
+                    chatContainer.appendChild(questionDiv);
+                } else {
+                    const completionDiv = document.createElement('div');
+                    completionDiv.classList.add('chat-message', 'answer');
+                    completionDiv.textContent = 'Questions Completed';
+                    chatContainer.appendChild(completionDiv);
+                }
+            }
+        };
+
+        recognition.start();
+    }
+
+    function stopRecognition() {
+        if (recognition) {
+            recognition.stop();
+        }
+    }
+
+    startBtn.addEventListener('click', function() {
+        questionDiv.textContent = questions[currentQuestionIndex];
+        startRecognition();
+    });
+
+    stopBtn.addEventListener('click', function() {
+        stopRecognition();
+    });
+
+    // Function to extract the previous word from a given transcript
+    function extractPreviousWord(transcript) {
+        const words = transcript.trim().split(' ');
+        if (words.length > 1) {
+            return words[words.length - 2];
+        }
+        return '';
+    }
+</script>
+
+</body>
+</html>
