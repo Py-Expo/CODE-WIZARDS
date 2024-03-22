@@ -4,6 +4,7 @@
 This project is a Speech-to-Text Medical Transcription Server built using Python. It transcribes medical audio recordings, performs text generation, corrects spelling mistakes, and saves the transcribed text into a database.
 
 Features:
+
 Speech-to-Text Transcription: Utilizes a pre-trained model to transcribe medical audio recordings into text format.
 
 Text Generation: Generates additional medical text based on the transcribed audio using a pre-trained model.
